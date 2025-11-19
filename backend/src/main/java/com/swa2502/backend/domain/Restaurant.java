@@ -19,6 +19,12 @@ public class Restaurant {
 
     private String name;
 
+    @Transient
+    private Integer occupiedSeats;
+
+    @Transient
+    private Integer totalSeats;
+
     @OneToMany(mappedBy = "restaurant", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Shop> shops = new ArrayList<>();
 }

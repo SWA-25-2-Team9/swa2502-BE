@@ -17,6 +17,9 @@ public class Shop {
     private Long id;
 
     private String name;
+    private Integer currentQueue;
+    private Integer etaMinutes;
+    private Boolean isOpen;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "restaurant_id", nullable = false)
