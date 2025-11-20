@@ -48,3 +48,9 @@ dependencies {
 tasks.named('test') {
 	useJUnitPlatform()
 }
+
+
+// 필요없으면 삭제하기
+tasks.withType(JavaCompile) {
+	options.compilerArgs += "-parameters"
+}
