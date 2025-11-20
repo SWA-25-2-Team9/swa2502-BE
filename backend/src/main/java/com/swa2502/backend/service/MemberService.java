@@ -12,4 +12,6 @@ public interface MemberService {
 
     @Transactional
     JwtToken logIn(LogInDto logInDto);
+
+    Long getMemberId();
 }

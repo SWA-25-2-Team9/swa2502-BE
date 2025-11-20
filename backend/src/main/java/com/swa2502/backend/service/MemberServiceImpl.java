@@ -14,6 +14,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -83,5 +84,11 @@ public class MemberServiceImpl implements MemberService{
         log.info("로그인 성공: {}, 토큰 생성됨", username);
 
         return jwtToken;
+    }
+
+    public Long getMemberId() {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        Member member = (Member) auth.getPrincipal();
+        return member.getId();
     }
 }
