@@ -19,7 +19,7 @@ public class ShopController {
     private final MenuService menuService;
 
     @GetMapping("/{shopId}/menus")
-    public ResponseEntity<List<MenuDto>> getMenusByShopId(@PathVariable Long shopId) {
+    public ResponseEntity<List<MenuDto>> getMenusByShopId(@PathVariable("shopId") Long shopId) {
         List<MenuDto> menus = menuService.getMenusByShopId(shopId);
         return ResponseEntity.ok(menus);
     }
