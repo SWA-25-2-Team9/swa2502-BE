@@ -7,24 +7,23 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
-import java.util.ArrayList;
-import java.util.List;
-
 @Getter
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class SignUpDto {
+public class SignUpRequestDto {
 
-    private String username;
+    private String userId;
     private String password;
+    private String name;
     private Role role;
 
     public Member toEntity(String encodedPassword) {
 
         return Member.builder()
-                .username(username)
+                .userId(userId)
                 .password(encodedPassword)
+                .name(name)
                 .role(role)
                 .build();
     }

@@ -1,14 +1,13 @@
-package com.swa2502.backend.security;
+package com.swa2502.backend.dto;
 
 import lombok.*;
 
-@Data
 @Getter
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
 public class JwtToken {
-    private String grantType;
+    private String grantType;   // Bearer
     private String accessToken;
     private String refreshToken;
 }
