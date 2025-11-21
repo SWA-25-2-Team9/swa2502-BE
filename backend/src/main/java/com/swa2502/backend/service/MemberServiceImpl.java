@@ -1,14 +1,15 @@
 package com.swa2502.backend.service;
 
 import com.swa2502.backend.domain.Member;
-import com.swa2502.backend.dto.LogInDto;
-import com.swa2502.backend.dto.MemberDto;
+import com.swa2502.backend.dto.JwtToken;
+import com.swa2502.backend.dto.LoginRequestDto;
+import com.swa2502.backend.dto.SignUpResponseDto;
 import com.swa2502.backend.exception.CustomException;
 import com.swa2502.backend.exception.ErrorCode;
 import com.swa2502.backend.repository.MemberRepository;
-import com.swa2502.backend.security.JwtToken;
+import com.swa2502.backend.security.LoginResponseDto;
 import com.swa2502.backend.security.JwtTokenProvider;
-import com.swa2502.backend.dto.SignUpDto;
+import com.swa2502.backend.dto.SignUpRequestDto;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -34,34 +35,34 @@ public class MemberServiceImpl implements MemberService{
 
     @Transactional
     @Override
-    public MemberDto signUp(SignUpDto signUpDto) {
-        if (memberRepository.existsByUsername(signUpDto.getUsername())) {
+    public SignUpResponseDto signUp(SignUpRequestDto signUpRequestDto) {
+        if (memberRepository.existsByuserId(signUpRequestDto.getUserId())) {
             throw new CustomException(ErrorCode.DUPLICATE_USER,
-                    "이미 사용 중인 사용자명입니다: " + signUpDto.getUsername());
+                    "이미 사용 중인 사용자명입니다: " + signUpRequestDto.getUserId());
         }
         // Password 암호화
-        String encodedPassword = passwordEncoder.encode(signUpDto.getPassword());
-        return MemberDto.toDto(memberRepository.save(signUpDto.toEntity(encodedPassword)));
+        String encodedPassword = passwordEncoder.encode(signUpRequestDto.getPassword());
+        return SignUpResponseDto.from(memberRepository.save(signUpRequestDto.toEntity(encodedPassword)));
     }
 
     @Transactional
     @Override
-    public JwtToken logIn(LogInDto logInDto) {
-        String username = logInDto.getUsername();
-        String password = logInDto.getPassword();
+    public LoginResponseDto logIn(LoginRequestDto loginRequestDto) {
+        String userId = loginRequestDto.getUserId();
+        String password = loginRequestDto.getPassword();
 
-        log.info("----- 로그인 시도: username={} -----", username);
+        log.info("----- 로그인 시도: userId={} -----", userId);
 
         // 1. 사용자 조회
-        Member member = memberRepository.findByUsername(username)
+        Member member = memberRepository.findByuserId(userId)
                 .orElseThrow(() -> {
-                    log.warn("존재하지 않는 사용자: {}", username);
+                    log.warn("존재하지 않는 사용자: {}", userId);
                     return new CustomException(ErrorCode.USER_NOT_FOUND);
                 });
 
         // 2. 비밀번호 검증
         if (!passwordEncoder.matches(password, member.getPassword())) {
-            log.warn("비밀번호 불일치: {}", username);
+            log.warn("비밀번호 불일치: {}", userId);
             throw new CustomException(ErrorCode.PASSWORD_MISMATCH);
         }
 
@@ -70,7 +71,7 @@ public class MemberServiceImpl implements MemberService{
                 List.of(new SimpleGrantedAuthority(member.getRole().name()));
 
         // 4. Authentication 객체 생성 (이미 인증된 상태로)
-        UserDetails principal = new User(member.getUsername(), "", authorities);
+        UserDetails principal = new User(member.getUserId(), "", authorities);
         Authentication authentication = new UsernamePasswordAuthenticationToken(
                 principal,
                 "",
@@ -78,10 +79,12 @@ public class MemberServiceImpl implements MemberService{
         );
 
         // 5. 인증 정보를 기반으로 JWT 토큰 생성
-        JwtToken jwtToken = jwtTokenProvider.generateToken(authentication);
+        JwtToken jwtToken = jwtTokenProvider.generateToken(authentication, member.getId());
 
-        log.info("로그인 성공: {}, 토큰 생성됨", username);
+        LoginResponseDto loginResponseDto = LoginResponseDto.from(member, jwtToken);
 
-        return jwtToken;
+        log.info("로그인 성공: {}, 토큰 생성됨", userId);
+
+        return loginResponseDto;
     }
 }

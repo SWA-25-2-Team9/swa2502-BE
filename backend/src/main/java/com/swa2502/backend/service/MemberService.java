@@ -1,15 +1,16 @@
 package com.swa2502.backend.service;
 
-import com.swa2502.backend.dto.LogInDto;
-import com.swa2502.backend.dto.MemberDto;
-import com.swa2502.backend.security.JwtToken;
-import com.swa2502.backend.dto.SignUpDto;
+import com.swa2502.backend.dto.LoginRequestDto;
+import com.swa2502.backend.dto.SignUpResponseDto;
+import com.swa2502.backend.security.LoginResponseDto;
+import com.swa2502.backend.dto.SignUpRequestDto;
 import org.springframework.transaction.annotation.Transactional;
 
 public interface MemberService {
     @Transactional
-    MemberDto signUp(SignUpDto signUpDto);
+    SignUpResponseDto signUp(SignUpRequestDto signUpRequestDto);
 
     @Transactional
-    JwtToken logIn(LogInDto logInDto);
+    LoginResponseDto logIn(LoginRequestDto loginRequestDto);
+
 }
