@@ -20,7 +20,13 @@ public enum ErrorCode {
     JWT_SIGNATURE_ERROR(HttpStatus.UNAUTHORIZED, "JWT_SIGNATURE_ERROR", "JWT 서명 검증에 실패했습니다."),
 
     // 사용자
-    DUPLICATE_USER(HttpStatus.CONFLICT, "DUPLICATE_USER", "이미 사용 중인 사용자명입니다.");
+    DUPLICATE_USER(HttpStatus.CONFLICT, "DUPLICATE_USER", "이미 사용 중인 사용자명입니다."),
+    
+    // 주문/장바구니
+    ORDER_NOT_FOUND(HttpStatus.NOT_FOUND, "ORDER_NOT_FOUND", "주문을 찾을 수 없습니다."),
+    CART_EMPTY(HttpStatus.BAD_REQUEST, "CART_EMPTY", "장바구니가 비어있습니다."),
+    SHOP_NOT_FOUND(HttpStatus.NOT_FOUND, "SHOP_NOT_FOUND", "상점을 찾을 수 없습니다."),
+    CART_ITEM_NOT_FOUND(HttpStatus.NOT_FOUND, "CART_ITEM_NOT_FOUND", "장바구니 항목을 찾을 수 없습니다.");
 
     private final HttpStatus status;
     private final String code;
