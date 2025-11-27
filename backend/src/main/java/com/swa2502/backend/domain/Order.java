@@ -32,10 +32,6 @@ public class Order {
     @JoinColumn(name = "shop_id", nullable = false)
     private Shop shop;
 
-    @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
-    private OrderStatus status;     // OrderItem별 status 필요?
-
     @Column(nullable = false)
     private Integer totalPrice;
 
@@ -54,4 +50,21 @@ public class Order {
 
     @LastModifiedDate
     private LocalDateTime updatedAt;
+
+    public static Order createOrder(Member member, Shop shop, String specialRequest, int orderNumber) {
+        return Order.builder()
+                .member(member)
+                .shop(shop)
+                .totalPrice(0) // Will be calculated
+                .orderNumber(orderNumber)
+                .specialRequest(specialRequest)
+                .orderItems(new ArrayList<>())
+                .build();
+    }
+
+    public void addOrderItem(OrderItem orderItem) {
+        this.orderItems.add(orderItem);
+        orderItem.setOrder(this);
+        this.totalPrice += orderItem.getPrice() * orderItem.getQuantity();
+    }
 }

@@ -11,7 +11,7 @@ import java.util.List;
 @Getter
 @Setter
 @NoArgsConstructor
-public class MenuItem {
+public class MenuItem extends Item {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

@@ -12,7 +12,7 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class OrderItem {
+public class OrderItem extends Item {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -34,4 +34,23 @@ public class OrderItem {
 
     @ElementCollection
     private List<Long> selectedOptionIds;
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private OrderStatus status;
+
+
+    public static OrderItem createOrderItem(MenuItem menuItem, int quantity, int price, List<Long> selectedOptionIds) {
+        return OrderItem.builder()
+                .menuItem(menuItem)
+                .quantity(quantity)
+                .price(price)
+                .selectedOptionIds(selectedOptionIds)
+                .status(OrderStatus.PENDING)
+                .build();
+    }
+
+    public void setOrder(Order order) {
+        this.order = order;
+    }
 }

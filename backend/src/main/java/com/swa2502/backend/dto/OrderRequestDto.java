@@ -8,6 +8,5 @@ import lombok.Setter;
 @Setter
 @NoArgsConstructor
 public class OrderRequestDto {
-    private Long shopId;
     private String request;
 }
