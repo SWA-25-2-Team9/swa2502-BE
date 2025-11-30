@@ -28,10 +28,6 @@ public class Order {
     @JoinColumn(name = "member_id", nullable = false)
     private Member member;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "shop_id", nullable = false)
-    private Shop shop;
-
     @Column(nullable = false)
     private Integer totalPrice;
 
@@ -51,10 +47,9 @@ public class Order {
     @LastModifiedDate
     private LocalDateTime updatedAt;
 
-    public static Order createOrder(Member member, Shop shop, String specialRequest, int orderNumber) {
+    public static Order createOrder(Member member, String specialRequest, Integer orderNumber) {
         return Order.builder()
                 .member(member)
-                .shop(shop)
                 .totalPrice(0) // Will be calculated
                 .orderNumber(orderNumber)
                 .specialRequest(specialRequest)
