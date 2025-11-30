@@ -25,6 +25,7 @@ public class OrderServiceImpl implements OrderService {
     private final MemberRepository memberRepository;
     private final CartItemRepository cartItemRepository;
     private final MenuOptionRepository menuOptionRepository;
+    private final OrderItemRepository orderItemRepository;
 
     @Override
     @Transactional
@@ -51,11 +52,11 @@ public class OrderServiceImpl implements OrderService {
             LocalDateTime now = LocalDateTime.now();
             LocalDateTime startOfDay = now.toLocalDate().atStartOfDay();
             LocalDateTime endOfDay = now.toLocalDate().atTime(LocalTime.MAX);
-            Integer maxOrderNumber = orderRepository.findMaxOrderNumberByShopAndDate(shop, startOfDay, endOfDay);
+            Integer maxOrderNumber = orderRepository.findMaxOrderNumberByDate(startOfDay, endOfDay);
             int orderNumber = (maxOrderNumber == null) ? 1 : maxOrderNumber + 1;
 
             // factory method로 Order 생성
-            Order order = Order.createOrder(member, shop, request.getRequest(), orderNumber);
+            Order order = Order.createOrder(member, request.getRequest(), orderNumber);
 
             // factory method로 OrderItems 생성
             for (CartItem cartItem : itemsForShop) {
@@ -76,7 +77,7 @@ public class OrderServiceImpl implements OrderService {
 
             orderRepository.save(order);
 
-            // MyTurn and ETA 계산
+            // MyTurn and ETA calculation per shop
             long myTurn = calculateMyTurn(shop, order.getCreatedAt());
             int estimatedReadyMin = calculateEstimatedReadyMin(shop, myTurn);
 
@@ -95,21 +96,28 @@ public class OrderServiceImpl implements OrderService {
         return responses;
     }
 
+
     @Override
     public CurrentOrderResponseDto getCurrentOrder(Long memberId) {
         Member member = memberRepository.findById(memberId)
                 .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
 
         List<OrderStatus> activeStatuses = List.of(OrderStatus.PENDING, OrderStatus.COOKING, OrderStatus.READY);
-        Order order = orderRepository.findTopByMemberAndStatusInOrderByCreatedAtDesc(member, activeStatuses)
+        Order order = orderRepository.findTopByMemberAndOrderItems_StatusInOrderByCreatedAtDesc(member, activeStatuses)
                 .orElse(null);
 
         if (order == null) {
             return null;
         }
 
-        long myTurn = calculateMyTurn(order.getShop(), order.getCreatedAt());
-        int estimatedReadyMin = calculateEstimatedReadyMin(order.getShop(), myTurn);
+        // For current order response, we'll pick the first shop found to display general info
+        // In a real multi-shop scenario, the DTO should probably be updated.
+        // For now, we use the shop of the first item.
+        if (order.getOrderItems().isEmpty()) return null;
+        
+        Shop primaryShop = order.getOrderItems().get(0).getMenuItem().getShop();
+        long myTurn = calculateMyTurn(primaryShop, order.getCreatedAt());
+        int estimatedReadyMin = calculateEstimatedReadyMin(primaryShop, myTurn);
 
         List<OrderItemDto> itemDtos = order.getOrderItems().stream()
                 .map(item -> {
@@ -130,7 +138,7 @@ public class OrderServiceImpl implements OrderService {
         return CurrentOrderResponseDto.builder()
                 .orderId(order.getId())
                 .orderNumber(order.getOrderNumber())
-                .shopName(order.getShop().getName())
+                .shopName(primaryShop.getName())
                 .myTurn(myTurn)
                 .estimatedReadyMin(estimatedReadyMin)
                 .totalPrice(order.getTotalPrice())
@@ -141,7 +149,7 @@ public class OrderServiceImpl implements OrderService {
 
     private long calculateMyTurn(Shop shop, LocalDateTime createdAt) {
         List<OrderStatus> waitingStatuses = List.of(OrderStatus.PENDING, OrderStatus.COOKING);
-        return orderRepository.countByShopAndStatusInAndCreatedAtBefore(shop, waitingStatuses, createdAt);
+        return orderItemRepository.countByShopAndStatusInAndCreatedAtBefore(shop, waitingStatuses, createdAt);
     }
 
     // 임시 ETA 및 Occupancy 로직
