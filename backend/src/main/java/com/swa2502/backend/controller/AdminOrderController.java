@@ -80,7 +80,7 @@ public class AdminOrderController {
         return ResponseEntity.ok(adminOrderService.updateStatusPrev(orderItemId));
     }
 
-    @PatchMapping("/orders/{orderItemId}/delete")
+    @PatchMapping("/orders/{orderItemId}/cancel")
     @Operation(summary = "orderItem 취소", description = "주문 항목을 취소 처리합니다.")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "취소 성공",
