@@ -1,5 +1,7 @@
 package com.swa2502.backend.service;
 
+import com.swa2502.backend.exception.CustomException;
+import com.swa2502.backend.exception.ErrorCode;
 import com.swa2502.backend.domain.OrderItem;
 import com.swa2502.backend.domain.OrderStatus;
 import com.swa2502.backend.dto.AdminOrderItemDto;
@@ -21,10 +23,12 @@ import java.util.stream.Collectors;
 public class AdminOrderServiceImpl implements AdminOrderService {
 
     private final OrderItemRepository orderItemRepository;
+    private final com.swa2502.backend.repository.ShopRepository shopRepository;
 
     @Override
     @Transactional(readOnly = true)
     public List<AdminOrderItemDto> getOrdersByShopId(Long shopId) {
+        validateShop(shopId);
         return orderItemRepository.findAllByMenuItem_Shop_Id(shopId).stream()
                 .map(this::convertToDto)
                 .collect(Collectors.toList());
@@ -33,6 +37,7 @@ public class AdminOrderServiceImpl implements AdminOrderService {
     @Override
     @Transactional(readOnly = true)
     public List<AdminOrderItemDto> getOrdersByShopIdAndStatus(Long shopId, OrderStatus status) {
+        validateShop(shopId);
         return orderItemRepository.findAllByMenuItem_Shop_IdAndStatus(shopId, status).stream()
                 .map(this::convertToDto)
                 .collect(Collectors.toList());
@@ -41,6 +46,7 @@ public class AdminOrderServiceImpl implements AdminOrderService {
     @Override
     @Transactional(readOnly = true)
     public ShopStatsDto getShopStats(Long shopId) {
+        validateShop(shopId);
         LocalDateTime startOfDay = LocalDateTime.of(LocalDate.now(), LocalTime.MIN);
         LocalDateTime endOfDay = LocalDateTime.of(LocalDate.now(), LocalTime.MAX);
 
@@ -59,10 +65,16 @@ public class AdminOrderServiceImpl implements AdminOrderService {
                 .build();
     }
 
+    private void validateShop(Long shopId) {
+        if (!shopRepository.existsById(shopId)) {
+            throw new CustomException(ErrorCode.SHOP_NOT_FOUND);
+        }
+    }
+
     @Override
     public AdminOrderItemDto updateStatusNext(Long orderItemId) {
         OrderItem orderItem = orderItemRepository.findById(orderItemId)
-                .orElseThrow(() -> new IllegalArgumentException("OrderItem not found"));
+                .orElseThrow(() -> new CustomException(ErrorCode.ORDER_ITEM_NOT_FOUND));
         
         OrderStatus nextStatus = getNextStatus(orderItem.getStatus());
         if (nextStatus != null) {
@@ -75,7 +87,7 @@ public class AdminOrderServiceImpl implements AdminOrderService {
     @Override
     public AdminOrderItemDto updateStatusPrev(Long orderItemId) {
         OrderItem orderItem = orderItemRepository.findById(orderItemId)
-                .orElseThrow(() -> new IllegalArgumentException("OrderItem not found"));
+                .orElseThrow(() -> new CustomException(ErrorCode.ORDER_ITEM_NOT_FOUND));
 
         OrderStatus prevStatus = getPrevStatus(orderItem.getStatus());
         if (prevStatus != null) {
@@ -88,7 +100,7 @@ public class AdminOrderServiceImpl implements AdminOrderService {
     @Override
     public AdminOrderItemDto cancelOrderItem(Long orderItemId) {
         OrderItem orderItem = orderItemRepository.findById(orderItemId)
-                .orElseThrow(() -> new IllegalArgumentException("OrderItem not found"));
+                .orElseThrow(() -> new CustomException(ErrorCode.ORDER_ITEM_NOT_FOUND));
         
         orderItem.setStatus(OrderStatus.CANCELED);
         
