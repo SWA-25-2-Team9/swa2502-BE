@@ -17,6 +17,7 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/api/v1/orders")
 @RequiredArgsConstructor
 @Tag(name = "Order", description = "주문 관련 API")
+@PreAuthorize("hasRole('USER')")
 public class OrderController {
 
     private final OrderService orderService;
