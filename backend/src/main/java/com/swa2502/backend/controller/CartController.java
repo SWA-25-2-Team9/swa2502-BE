@@ -2,8 +2,10 @@ package com.swa2502.backend.controller;
 
 import com.swa2502.backend.dto.*;
 import com.swa2502.backend.service.CartService;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
@@ -13,6 +15,8 @@ import java.util.Map;
 @RestController
 @RequestMapping("/api/v1/carts")
 @RequiredArgsConstructor
+@Tag(name = "Cart", description = "장바구니 관련 API")
+@PreAuthorize("hasRole('USER')")
 public class CartController {
     private final CartService cartService;
 
