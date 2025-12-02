@@ -47,6 +47,8 @@ public class Order {
     @LastModifiedDate
     private LocalDateTime updatedAt;
 
+    private LocalDateTime pickupAt;
+
     public static Order createOrder(Member member, String specialRequest, Integer orderNumber) {
         return Order.builder()
                 .member(member)
