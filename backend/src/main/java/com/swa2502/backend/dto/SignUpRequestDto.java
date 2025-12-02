@@ -19,13 +19,14 @@ public class SignUpRequestDto {
     private Role role;
     private Long shopId;
 
-    public Member toEntity(String encodedPassword) {
+    public Member toEntity(String encodedPassword, com.swa2502.backend.domain.Shop shop) {
 
         return Member.builder()
                 .userId(userId)
                 .password(encodedPassword)
                 .name(name)
                 .role(role)
+                .shop(shop)
                 .build();
     }
 }

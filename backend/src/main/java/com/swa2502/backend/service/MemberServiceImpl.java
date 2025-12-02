@@ -7,6 +7,7 @@ import com.swa2502.backend.dto.SignUpResponseDto;
 import com.swa2502.backend.exception.CustomException;
 import com.swa2502.backend.exception.ErrorCode;
 import com.swa2502.backend.repository.MemberRepository;
+import com.swa2502.backend.repository.ShopRepository;
 import com.swa2502.backend.security.LoginResponseDto;
 import com.swa2502.backend.security.JwtTokenProvider;
 import com.swa2502.backend.dto.SignUpRequestDto;
@@ -32,6 +33,7 @@ public class MemberServiceImpl implements MemberService{
     private final MemberRepository memberRepository;
     private final JwtTokenProvider jwtTokenProvider;
     private final PasswordEncoder passwordEncoder;
+    private final ShopRepository shopRepository;
 
     @Transactional
     @Override
@@ -40,9 +42,19 @@ public class MemberServiceImpl implements MemberService{
             throw new CustomException(ErrorCode.DUPLICATE_USER,
                     "이미 사용 중인 사용자명입니다: " + signUpRequestDto.getUserId());
         }
+
+        com.swa2502.backend.domain.Shop shop = null;
+        if (signUpRequestDto.getRole() == com.swa2502.backend.domain.Role.ROLE_ADMIN) {
+            if (signUpRequestDto.getShopId() == null) {
+                throw new CustomException(ErrorCode.SHOP_NOT_FOUND, "Admin user must have a shopId");
+            }
+            shop = shopRepository.findById(signUpRequestDto.getShopId())
+                    .orElseThrow(() -> new CustomException(ErrorCode.SHOP_NOT_FOUND));
+        }
+
         // Password 암호화
         String encodedPassword = passwordEncoder.encode(signUpRequestDto.getPassword());
-        return SignUpResponseDto.from(memberRepository.save(signUpRequestDto.toEntity(encodedPassword)));
+        return SignUpResponseDto.from(memberRepository.save(signUpRequestDto.toEntity(encodedPassword, shop)));
     }
 
     @Transactional

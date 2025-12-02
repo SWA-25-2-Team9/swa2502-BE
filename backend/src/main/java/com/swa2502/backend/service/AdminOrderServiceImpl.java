@@ -2,11 +2,15 @@ package com.swa2502.backend.service;
 
 import com.swa2502.backend.exception.CustomException;
 import com.swa2502.backend.exception.ErrorCode;
+import com.swa2502.backend.domain.Member;
 import com.swa2502.backend.domain.OrderItem;
 import com.swa2502.backend.domain.OrderStatus;
 import com.swa2502.backend.dto.AdminOrderItemDto;
 import com.swa2502.backend.dto.ShopStatsDto;
+import com.swa2502.backend.repository.MemberRepository;
 import com.swa2502.backend.repository.OrderItemRepository;
+import com.swa2502.backend.repository.ShopRepository;
+
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -23,35 +27,36 @@ import java.util.stream.Collectors;
 public class AdminOrderServiceImpl implements AdminOrderService {
 
     private final OrderItemRepository orderItemRepository;
-    private final com.swa2502.backend.repository.ShopRepository shopRepository;
+    private final ShopRepository shopRepository;
+    private final MemberRepository memberRepository;
 
     @Override
     @Transactional(readOnly = true)
-    public List<AdminOrderItemDto> getOrdersByShopId(Long shopId) {
-        validateShop(shopId);
-        return orderItemRepository.findAllByMenuItem_Shop_Id(shopId).stream()
+    public List<AdminOrderItemDto> getOrdersByShopId(Long memberId) {
+        validateShop(memberId);
+        return orderItemRepository.findAllByMenuItem_Shop_Id(getShopId(memberId)).stream()
                 .map(this::convertToDto)
                 .collect(Collectors.toList());
     }
 
     @Override
     @Transactional(readOnly = true)
-    public List<AdminOrderItemDto> getOrdersByShopIdAndStatus(Long shopId, OrderStatus status) {
-        validateShop(shopId);
-        return orderItemRepository.findAllByMenuItem_Shop_IdAndStatus(shopId, status).stream()
+    public List<AdminOrderItemDto> getOrdersByShopIdAndStatus(Long memberId, OrderStatus status) {
+        validateShop(memberId);
+        return orderItemRepository.findAllByMenuItem_Shop_IdAndStatus(getShopId(memberId), status).stream()
                 .map(this::convertToDto)
                 .collect(Collectors.toList());
     }
 
     @Override
     @Transactional(readOnly = true)
-    public ShopStatsDto getShopStats(Long shopId) {
-        validateShop(shopId);
+    public ShopStatsDto getShopStats(Long memberId) {
+        validateShop(memberId);
         LocalDateTime startOfDay = LocalDateTime.of(LocalDate.now(), LocalTime.MIN);
         LocalDateTime endOfDay = LocalDateTime.of(LocalDate.now(), LocalTime.MAX);
 
-        Long todaySales = orderItemRepository.sumTotalPriceByShopIdAndDate(shopId, startOfDay, endOfDay);
-        Long orderCount = orderItemRepository.countOrdersByShopIdAndDate(shopId, startOfDay, endOfDay);
+        Long todaySales = orderItemRepository.sumTotalPriceByShopIdAndDate(getShopId(memberId), startOfDay, endOfDay);
+        Long orderCount = orderItemRepository.countOrdersByShopIdAndDate(getShopId(memberId), startOfDay, endOfDay);
 
         // avgPrepTime는 임의로 0으로 표시
         Long avgPrepTime = 0L; 
@@ -65,8 +70,8 @@ public class AdminOrderServiceImpl implements AdminOrderService {
                 .build();
     }
 
-    private void validateShop(Long shopId) {
-        if (!shopRepository.existsById(shopId)) {
+    private void validateShop(Long memberId) {
+        if (!shopRepository.existsById(getShopId(memberId))) {
             throw new CustomException(ErrorCode.SHOP_NOT_FOUND);
         }
     }
@@ -135,5 +140,14 @@ public class AdminOrderServiceImpl implements AdminOrderService {
             case READY: return OrderStatus.ACCEPTED;
             default: return null;
         }
+    }
+
+    private Long getShopId(Long memberId) {
+        Member member = memberRepository.findById(memberId)
+                .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
+        if (member.getShop() == null) {
+            throw new CustomException(ErrorCode.SHOP_NOT_FOUND);
+        }
+        return member.getShop().getId();
     }
 }

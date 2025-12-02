@@ -15,6 +15,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.userdetails.UserDetails;
 
 import java.util.List;
 
@@ -34,8 +36,8 @@ public class AdminOrderController {
             @ApiResponse(responseCode = "200", description = "조회 성공",
                     content = @Content(schema = @Schema(implementation = AdminOrderItemDto.class)))
     })
-    public ResponseEntity<List<AdminOrderItemDto>> getShopOrders(@RequestParam("shopId") Long shopId) {
-        return ResponseEntity.ok(adminOrderService.getOrdersByShopId(shopId));
+    public ResponseEntity<List<AdminOrderItemDto>> getShopOrders(UserDetails userDetails) {
+        return ResponseEntity.ok(adminOrderService.getOrdersByShopId(getMemberId(userDetails)));
     }
 
     @GetMapping("/shops/orders/status")
@@ -45,9 +47,9 @@ public class AdminOrderController {
                     content = @Content(schema = @Schema(implementation = AdminOrderItemDto.class)))
     })
     public ResponseEntity<List<AdminOrderItemDto>> getShopOrdersByStatus(
-            @RequestParam("shopId") Long shopId,
+            @AuthenticationPrincipal UserDetails userDetails,
             @RequestParam("status") OrderStatus status) {
-        return ResponseEntity.ok(adminOrderService.getOrdersByShopIdAndStatus(shopId, status));
+        return ResponseEntity.ok(adminOrderService.getOrdersByShopIdAndStatus(getMemberId(userDetails), status));
     }
 
     @GetMapping("/shops/my/stats")
@@ -56,8 +58,8 @@ public class AdminOrderController {
             @ApiResponse(responseCode = "200", description = "조회 성공",
                     content = @Content(schema = @Schema(implementation = ShopStatsDto.class)))
     })
-    public ResponseEntity<ShopStatsDto> getShopStats(@RequestParam("shopId") Long shopId) {
-        return ResponseEntity.ok(adminOrderService.getShopStats(shopId));
+    public ResponseEntity<ShopStatsDto> getShopStats(@AuthenticationPrincipal UserDetails userDetails) {
+        return ResponseEntity.ok(adminOrderService.getShopStats(getMemberId(userDetails)));
     }
 
     @PatchMapping("/orders/{orderItemId}/next")
@@ -88,5 +90,10 @@ public class AdminOrderController {
     })
     public ResponseEntity<AdminOrderItemDto> cancelOrderItem(@PathVariable("orderItemId") Long orderItemId) {
         return ResponseEntity.ok(adminOrderService.cancelOrderItem(orderItemId));
+    }
+
+    private Long getMemberId(@AuthenticationPrincipal UserDetails userDetails) {
+        Long memberId = Long.parseLong(userDetails.getUsername());
+    return memberId;
     }
 }
