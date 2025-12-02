@@ -46,7 +46,7 @@ public class OrderItem extends Item {
                 .quantity(quantity)
                 .price(price)
                 .selectedOptionIds(selectedOptionIds)
-                .status(OrderStatus.PENDING)
+                .status(OrderStatus.ACCEPTED)
                 .build();
     }
 

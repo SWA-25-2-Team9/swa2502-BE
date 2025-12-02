@@ -120,23 +120,19 @@ public class AdminOrderServiceImpl implements AdminOrderService {
     }
 
     private OrderStatus getNextStatus(OrderStatus current) {
-        // PENDING -> ACCEPTED -> COOKING -> READY -> PICKED_UP
+        // ACCEPTED -> READY -> PICKED_UP
         switch (current) {
-            case PENDING: return OrderStatus.ACCEPTED;
-            case ACCEPTED: return OrderStatus.COOKING;
-            case COOKING: return OrderStatus.READY;
+            case ACCEPTED: return OrderStatus.READY;
             case READY: return OrderStatus.PICKED_UP;
             default: return null;
         }
     }
 
     private OrderStatus getPrevStatus(OrderStatus current) {
-        // PICKED_UP -> READY -> COOKING -> ACCEPTED -> PENDING
+        // PICKED_UP -> READY -> ACCEPTED
         switch (current) {
             case PICKED_UP: return OrderStatus.READY;
-            case READY: return OrderStatus.COOKING;
-            case COOKING: return OrderStatus.ACCEPTED;
-            case ACCEPTED: return OrderStatus.PENDING;
+            case READY: return OrderStatus.ACCEPTED;
             default: return null;
         }
     }

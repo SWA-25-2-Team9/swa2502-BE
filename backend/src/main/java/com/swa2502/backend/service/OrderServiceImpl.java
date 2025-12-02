@@ -102,7 +102,7 @@ public class OrderServiceImpl implements OrderService {
         Member member = memberRepository.findById(memberId)
                 .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
 
-        List<OrderStatus> activeStatuses = List.of(OrderStatus.PENDING, OrderStatus.COOKING, OrderStatus.READY);
+        List<OrderStatus> activeStatuses = List.of(OrderStatus.ACCEPTED, OrderStatus.READY);
         Order order = orderRepository.findTopByMemberAndOrderItems_StatusInOrderByCreatedAtDesc(member, activeStatuses)
                 .orElse(null);
 
@@ -148,7 +148,7 @@ public class OrderServiceImpl implements OrderService {
     }
 
     private long calculateMyTurn(Shop shop, LocalDateTime createdAt) {
-        List<OrderStatus> waitingStatuses = List.of(OrderStatus.PENDING, OrderStatus.COOKING);
+        List<OrderStatus> waitingStatuses = List.of(OrderStatus.ACCEPTED, OrderStatus.READY);
         return orderItemRepository.countByShopAndStatusInAndCreatedAtBefore(shop, waitingStatuses, createdAt);
     }
 

@@ -17,6 +17,7 @@ public class SignUpRequestDto {
     private String password;
     private String name;
     private Role role;
+    private Long shopId;
 
     public Member toEntity(String encodedPassword) {
 
