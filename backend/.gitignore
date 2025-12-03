@@ -37,3 +37,6 @@ out/
 .vscode/
 
 src/main/resources/application.yml
+
+classDiagram.pdf
+SWA 디자인/
