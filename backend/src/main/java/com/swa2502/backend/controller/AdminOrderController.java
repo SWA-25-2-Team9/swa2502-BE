@@ -36,7 +36,7 @@ public class AdminOrderController {
             @ApiResponse(responseCode = "200", description = "조회 성공",
                     content = @Content(schema = @Schema(implementation = AdminOrderItemDto.class)))
     })
-    public ResponseEntity<List<AdminOrderItemDto>> getShopOrders(UserDetails userDetails) {
+    public ResponseEntity<List<AdminOrderItemDto>> getShopOrders(@AuthenticationPrincipal UserDetails userDetails) {
         return ResponseEntity.ok(adminOrderService.getOrdersByShopId(getMemberId(userDetails)));
     }
 

@@ -22,7 +22,6 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/api/v1/menus")
 @RequiredArgsConstructor
 @Tag(name = "Menu", description = "메뉴 관련 API")
-@PreAuthorize("hasRole('USER')")
 public class MenuController {
 
     private final MenuService menuService;

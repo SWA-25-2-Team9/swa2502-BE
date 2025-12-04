@@ -17,7 +17,7 @@ public class CurrentOrderResponseDto {
     private Integer orderNumber;
     private String shopName;
     private Long myTurn;
-    private Integer estimatedReadyMin;
+    private Integer etaMinutes;
     private Integer totalPrice;
     private LocalDateTime orderedAt;
     private List<OrderItemDto> items;

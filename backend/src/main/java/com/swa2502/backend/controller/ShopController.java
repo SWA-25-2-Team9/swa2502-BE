@@ -24,7 +24,6 @@ import java.util.List;
 @RequestMapping("/api/v1/shops")
 @RequiredArgsConstructor
 @Tag(name = "Shop", description = "가게 관련 API")
-@PreAuthorize("hasRole('USER')")
 public class ShopController {
 
     private final MenuService menuService;

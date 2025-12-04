@@ -13,8 +13,7 @@ import java.util.Optional;
 
 public interface OrderRepository extends JpaRepository<Order, Long> {
 
-    @Query("SELECT DISTINCT o FROM Order o JOIN o.orderItems oi WHERE o.member = :member AND oi.status IN :statuses ORDER BY o.createdAt DESC")
-    Optional<Order> findTopByMemberAndOrderItems_StatusInOrderByCreatedAtDesc(@Param("member") Member member, @Param("statuses") List<OrderStatus> statuses);
+    Optional<Order> findTopByMemberAndOrderItems_StatusInOrderByCreatedAtDesc(Member member, List<OrderStatus> statuses);
 
     @Query("SELECT MAX(o.orderNumber) FROM Order o WHERE o.createdAt BETWEEN :startOfDay AND :endOfDay")
     Integer findMaxOrderNumberByDate(@Param("startOfDay") LocalDateTime startOfDay, @Param("endOfDay") LocalDateTime endOfDay);

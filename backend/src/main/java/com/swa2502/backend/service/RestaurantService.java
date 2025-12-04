@@ -146,7 +146,7 @@ public class RestaurantService {
     }
 
     // --- Helper method for ETA calculation ---
-    private int calculateShopEta(Shop shop) {
+    public int calculateShopEta(Shop shop) {
         List<OrderStatus> waitingStatuses = List.of(OrderStatus.ACCEPTED);
         long waitingOrders = orderItemRepository.countByMenuItem_ShopAndStatusIn(shop, waitingStatuses);
         return (int) (waitingOrders * 5);

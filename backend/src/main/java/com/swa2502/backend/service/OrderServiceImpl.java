@@ -26,6 +26,7 @@ public class OrderServiceImpl implements OrderService {
     private final CartItemRepository cartItemRepository;
     private final MenuOptionRepository menuOptionRepository;
     private final OrderItemRepository orderItemRepository;
+    private final RestaurantService restaurantService;
 
     @Override
     @Transactional
@@ -79,13 +80,13 @@ public class OrderServiceImpl implements OrderService {
 
             // MyTurn and ETA calculation per shop
             long myTurn = calculateMyTurn(shop, order.getCreatedAt());
-            int estimatedReadyMin = calculateEstimatedReadyMin(shop);
+            int etaMinutes = restaurantService.calculateShopEta(shop);
 
             responses.add(OrderResponseDto.builder()
                     .orderId(order.getId())
                     .orderNumber(orderNumber)
                     .myTurn(myTurn)
-                    .estimatedReadyMin(estimatedReadyMin)
+                    .etaMinutes(etaMinutes)
                     .build());
         }
 
@@ -117,7 +118,7 @@ public class OrderServiceImpl implements OrderService {
         
         Shop primaryShop = order.getOrderItems().get(0).getMenuItem().getShop();
         long myTurn = calculateMyTurn(primaryShop, order.getCreatedAt());
-        int estimatedReadyMin = calculateEstimatedReadyMin(primaryShop);
+        int etaMinutes = restaurantService.calculateShopEta(primaryShop);
 
         List<OrderItemDto> itemDtos = order.getOrderItems().stream()
                 .map(item -> {
@@ -140,7 +141,7 @@ public class OrderServiceImpl implements OrderService {
                 .orderNumber(order.getOrderNumber())
                 .shopName(primaryShop.getName())
                 .myTurn(myTurn)
-                .estimatedReadyMin(estimatedReadyMin)
+                .etaMinutes(etaMinutes)
                 .totalPrice(order.getTotalPrice())
                 .orderedAt(order.getCreatedAt())
                 .items(itemDtos)
@@ -150,11 +151,5 @@ public class OrderServiceImpl implements OrderService {
     private long calculateMyTurn(Shop shop, LocalDateTime createdAt) {
         List<OrderStatus> waitingStatuses = List.of(OrderStatus.ACCEPTED, OrderStatus.READY);
         return orderItemRepository.countByShopAndStatusInAndCreatedAtBefore(shop, waitingStatuses, createdAt);
-    }
-
-    private int calculateEstimatedReadyMin(Shop shop) {
-        List<OrderStatus> waitingStatuses = List.of(OrderStatus.ACCEPTED);
-        long waitingOrders = orderItemRepository.countByMenuItem_ShopAndStatusIn(shop, waitingStatuses);
-        return (int) (waitingOrders * 5);
     }
 }

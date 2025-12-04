@@ -13,5 +13,5 @@ public class OrderResponseDto {
     private Long orderId;
     private Integer orderNumber;
     private Long myTurn;
-    private Integer estimatedReadyMin;
+    private Integer etaMinutes;
 }
