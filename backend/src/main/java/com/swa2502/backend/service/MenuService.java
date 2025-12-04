@@ -1,5 +1,7 @@
 package com.swa2502.backend.service;
 
+import com.swa2502.backend.exception.CustomException;
+import com.swa2502.backend.exception.ErrorCode;
 import com.swa2502.backend.domain.MenuItem;
 import com.swa2502.backend.domain.MenuOption;
 import com.swa2502.backend.domain.MenuOptionGroup;
@@ -21,15 +23,19 @@ import java.util.stream.Collectors;
 public class MenuService {
 
     private final MenuItemRepository menuItemRepository;
+    private final com.swa2502.backend.repository.ShopRepository shopRepository;
 
     public List<MenuDto> getMenusByShopId(Long shopId) {
+        if (!shopRepository.existsById(shopId)) {
+            throw new CustomException(ErrorCode.SHOP_NOT_FOUND);
+        }
         List<MenuItem> menuItems = menuItemRepository.findByShopId(shopId);
         return menuItems.stream().map(this::convertMenuToDto).collect(Collectors.toList());
     }
 
     public MenuDetailDto getMenuById(Long menuId) {
         MenuItem menuItem = menuItemRepository.findById(menuId)
-                .orElseThrow(() -> new RuntimeException("Menu not found with id: " + menuId));
+                .orElseThrow(() -> new CustomException(ErrorCode.MENU_NOT_FOUND));
         return convertMenuToDetailDto(menuItem);
     }
 

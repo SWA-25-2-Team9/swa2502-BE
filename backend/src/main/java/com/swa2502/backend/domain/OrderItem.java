@@ -12,7 +12,7 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class OrderItem extends Item {
+public class OrderItem {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -46,7 +46,7 @@ public class OrderItem extends Item {
                 .quantity(quantity)
                 .price(price)
                 .selectedOptionIds(selectedOptionIds)
-                .status(OrderStatus.PENDING)
+                .status(OrderStatus.ACCEPTED)
                 .build();
     }
 

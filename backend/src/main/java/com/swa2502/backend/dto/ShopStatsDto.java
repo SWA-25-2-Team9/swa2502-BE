@@ -9,9 +9,9 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class OrderResponseDto {
-    private Long orderId;
-    private Integer orderNumber;
-    private Long myTurn;
-    private Integer etaMinutes;
+public class ShopStatsDto {
+    private Long todaySales;
+    private Long orderCount;
+    private Long avgPrepTime; // in minutes
+    private Long batchOrderCount;
 }

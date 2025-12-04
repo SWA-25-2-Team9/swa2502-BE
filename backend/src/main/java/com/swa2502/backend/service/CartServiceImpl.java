@@ -1,5 +1,7 @@
 package com.swa2502.backend.service;
 
+import com.swa2502.backend.exception.CustomException;
+import com.swa2502.backend.exception.ErrorCode;
 import com.swa2502.backend.domain.CartItem;
 import com.swa2502.backend.domain.Member;
 import com.swa2502.backend.domain.MenuItem;
@@ -55,6 +57,10 @@ public class CartServiceImpl implements CartService {
 
     @Override
     public CartResponseDto updateQuantity(Long memberId, Long cartItemId, int quantity) {
+        if (quantity <= 0) {
+            throw new CustomException(ErrorCode.INVALID_INPUT_VALUE, "수량은 1 이상이어야 합니다.");
+        }
+
         CartItem cartItem = getCartItem(cartItemId);
 
         validateOwner(memberId, cartItem);
@@ -86,22 +92,22 @@ public class CartServiceImpl implements CartService {
 
     private Member getMember(Long id) {
         return memberRepository.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("Member not found: " + id));
+                .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
     }
 
     private MenuItem getMenuItem(Long id) {
         return menuItemRepository.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("Menu item not found: " + id));
+                .orElseThrow(() -> new CustomException(ErrorCode.MENU_NOT_FOUND));
     }
 
     private CartItem getCartItem(Long id) {
         return cartItemRepository.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("Cart item not found: " + id));
+                .orElseThrow(() -> new CustomException(ErrorCode.CART_ITEM_NOT_FOUND));
     }
 
     private void validateOwner(Long memberId, CartItem cartItem) {
         if (!cartItem.getMember().getId().equals(memberId)) {
-            throw new IllegalArgumentException("Unauthorized access: memberId=" + memberId);
+            throw new CustomException(ErrorCode.ACCESS_DENIED);
         }
     }
 }
