@@ -84,6 +84,9 @@ public class AdminOrderServiceImpl implements AdminOrderService {
         OrderStatus nextStatus = getNextStatus(orderItem.getStatus());
         if (nextStatus != null) {
             orderItem.setStatus(nextStatus);
+            if (nextStatus == OrderStatus.PICKED_UP) {
+                orderItem.getOrder().setPickupAt(LocalDateTime.now());
+            }
         }
         
         return convertToDto(orderItem);

@@ -6,6 +6,7 @@ import com.swa2502.backend.dto.OrderResponseDto;
 import com.swa2502.backend.service.OrderService;
 import java.util.List;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.ArraySchema;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -46,14 +47,14 @@ public class OrderController {
     @Operation(summary = "Current Order 반환", description = "current order를 반환합니다.")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "현재 주문 조회 성공",
-                    content = @Content(schema = @Schema(implementation = CurrentOrderResponseDto.class))),
+                    content = @Content(array = @ArraySchema(schema = @Schema(implementation = CurrentOrderResponseDto.class)))),
             @ApiResponse(responseCode = "204", description = "현재 주문 없음")
     })
-    public ResponseEntity<CurrentOrderResponseDto> getCurrentOrder(@AuthenticationPrincipal UserDetails userDetails) {
+    public ResponseEntity<List<CurrentOrderResponseDto>> getCurrentOrder(@AuthenticationPrincipal UserDetails userDetails) {
         
         Long memberId = Long.parseLong(userDetails.getUsername());
-        CurrentOrderResponseDto response = orderService.getCurrentOrder(memberId);
-        if (response == null) {
+        List<CurrentOrderResponseDto> response = orderService.getCurrentOrder(memberId);
+        if (response.isEmpty()) {
             return ResponseEntity.noContent().build();
         }
         return ResponseEntity.ok(response);

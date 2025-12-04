@@ -8,5 +8,5 @@ import java.util.List;
 
 public interface OrderService {
     List<OrderResponseDto> createOrder(Long memberId, OrderRequestDto request);
-    CurrentOrderResponseDto getCurrentOrder(Long memberId);
+    List<CurrentOrderResponseDto> getCurrentOrder(Long memberId);
 }

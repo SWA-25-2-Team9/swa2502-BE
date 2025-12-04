@@ -99,53 +99,51 @@ public class OrderServiceImpl implements OrderService {
 
 
     @Override
-    public CurrentOrderResponseDto getCurrentOrder(Long memberId) {
+    public List<CurrentOrderResponseDto> getCurrentOrder(Long memberId) {
         Member member = memberRepository.findById(memberId)
                 .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
 
         List<OrderStatus> activeStatuses = List.of(OrderStatus.ACCEPTED, OrderStatus.READY);
-        Order order = orderRepository.findTopByMemberAndOrderItems_StatusInOrderByCreatedAtDesc(member, activeStatuses)
-                .orElse(null);
+        List<Order> orders = orderRepository.findDistinctByMemberAndOrderItems_StatusInOrderByCreatedAtDesc(member, activeStatuses);
 
-        if (order == null) {
-            return null;
+        if (orders.isEmpty()) {
+            return new ArrayList<>();
         }
 
-        // For current order response, we'll pick the first shop found to display general info
-        // In a real multi-shop scenario, the DTO should probably be updated.
-        // For now, we use the shop of the first item.
-        if (order.getOrderItems().isEmpty()) return null;
-        
-        Shop primaryShop = order.getOrderItems().get(0).getMenuItem().getShop();
-        long myTurn = calculateMyTurn(primaryShop, order.getCreatedAt());
-        int etaMinutes = restaurantService.calculateShopEta(primaryShop);
+        return orders.stream().map(order -> {
+            if (order.getOrderItems().isEmpty()) return null;
 
-        List<OrderItemDto> itemDtos = order.getOrderItems().stream()
-                .map(item -> {
-                    List<String> optionNames = new ArrayList<>();
-                    if (item.getSelectedOptionIds() != null && !item.getSelectedOptionIds().isEmpty()) {
-                        List<MenuOption> options = menuOptionRepository.findAllById(item.getSelectedOptionIds());
-                        optionNames = options.stream().map(MenuOption::getName).collect(Collectors.toList());
-                    }
-                    return OrderItemDto.builder()
-                            .menuName(item.getMenuItem().getName())
-                            .quantity(item.getQuantity())
-                            .price(item.getPrice())
-                            .options(optionNames)
-                            .build();
-                })
-                .collect(Collectors.toList());
+            Shop primaryShop = order.getOrderItems().get(0).getMenuItem().getShop();
+            long myTurn = calculateMyTurn(primaryShop, order.getCreatedAt());
+            int etaMinutes = restaurantService.calculateShopEta(primaryShop);
 
-        return CurrentOrderResponseDto.builder()
-                .orderId(order.getId())
-                .orderNumber(order.getOrderNumber())
-                .shopName(primaryShop.getName())
-                .myTurn(myTurn)
-                .etaMinutes(etaMinutes)
-                .totalPrice(order.getTotalPrice())
-                .orderedAt(order.getCreatedAt())
-                .items(itemDtos)
-                .build();
+            List<OrderItemDto> itemDtos = order.getOrderItems().stream()
+                    .map(item -> {
+                        List<String> optionNames = new ArrayList<>();
+                        if (item.getSelectedOptionIds() != null && !item.getSelectedOptionIds().isEmpty()) {
+                            List<MenuOption> options = menuOptionRepository.findAllById(item.getSelectedOptionIds());
+                            optionNames = options.stream().map(MenuOption::getName).collect(Collectors.toList());
+                        }
+                        return OrderItemDto.builder()
+                                .menuName(item.getMenuItem().getName())
+                                .quantity(item.getQuantity())
+                                .price(item.getPrice())
+                                .options(optionNames)
+                                .build();
+                    })
+                    .collect(Collectors.toList());
+
+            return CurrentOrderResponseDto.builder()
+                    .orderId(order.getId())
+                    .orderNumber(order.getOrderNumber())
+                    .shopName(primaryShop.getName())
+                    .myTurn(myTurn)
+                    .etaMinutes(etaMinutes)
+                    .totalPrice(order.getTotalPrice())
+                    .orderedAt(order.getCreatedAt())
+                    .items(itemDtos)
+                    .build();
+        }).filter(dto -> dto != null).collect(Collectors.toList());
     }
 
     private long calculateMyTurn(Shop shop, LocalDateTime createdAt) {
