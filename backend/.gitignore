@@ -36,4 +36,7 @@ out/
 ### VS Code ###
 .vscode/
 
-src/main/resources/application.yml
+classDiagram.pdf
+SWA 디자인/
+
+application-local.yml

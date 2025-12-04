@@ -79,7 +79,7 @@ public class OrderServiceImpl implements OrderService {
 
             // MyTurn and ETA calculation per shop
             long myTurn = calculateMyTurn(shop, order.getCreatedAt());
-            int estimatedReadyMin = calculateEstimatedReadyMin(shop, myTurn);
+            int estimatedReadyMin = calculateEstimatedReadyMin(shop);
 
             responses.add(OrderResponseDto.builder()
                     .orderId(order.getId())
@@ -117,7 +117,7 @@ public class OrderServiceImpl implements OrderService {
         
         Shop primaryShop = order.getOrderItems().get(0).getMenuItem().getShop();
         long myTurn = calculateMyTurn(primaryShop, order.getCreatedAt());
-        int estimatedReadyMin = calculateEstimatedReadyMin(primaryShop, myTurn);
+        int estimatedReadyMin = calculateEstimatedReadyMin(primaryShop);
 
         List<OrderItemDto> itemDtos = order.getOrderItems().stream()
                 .map(item -> {
@@ -152,17 +152,9 @@ public class OrderServiceImpl implements OrderService {
         return orderItemRepository.countByShopAndStatusInAndCreatedAtBefore(shop, waitingStatuses, createdAt);
     }
 
-    // 임시 ETA 및 Occupancy 로직
-    private int calculateEstimatedReadyMin(Shop shop, long myTurn) {
-        // Occupancy logic: if myTurn is high, increase time
-        int baseTime = 5; // Default 5 mins
-        if (shop.getEtaMinutes() != null && shop.getEtaMinutes() > 0) {
-            baseTime = shop.getEtaMinutes();
-        }
-        
-        // Simple occupancy factor: +1 min for every 2 waiting orders
-        int occupancyDelay = (int) (myTurn / 2);
-
-        return (int) ((myTurn + 1) * baseTime) + occupancyDelay;
+    private int calculateEstimatedReadyMin(Shop shop) {
+        List<OrderStatus> waitingStatuses = List.of(OrderStatus.PENDING, OrderStatus.COOKING);
+        long waitingOrders = orderItemRepository.countByMenuItem_ShopAndStatusIn(shop, waitingStatuses);
+        return (int) (waitingOrders * 5);
     }
 }

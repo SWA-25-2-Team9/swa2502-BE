@@ -24,4 +24,8 @@ public interface OrderItemRepository extends JpaRepository<OrderItem, Long> {
 
     @Query("SELECT COUNT(DISTINCT o.id) FROM OrderItem oi JOIN oi.order o WHERE oi.menuItem.shop.id = :shopId AND o.createdAt BETWEEN :start AND :end")
     Long countOrdersByShopIdAndDate(@Param("shopId") Long shopId, @Param("start") LocalDateTime start, @Param("end") LocalDateTime end);
+
+    long countByMenuItem_ShopAndStatusIn(Shop shop, List<OrderStatus> statuses);
+
+    List<OrderItem> findByMenuItem_ShopInAndStatusIn(List<Shop> shops, List<OrderStatus> statuses);
 }
