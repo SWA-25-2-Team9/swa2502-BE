@@ -153,7 +153,7 @@ public class OrderServiceImpl implements OrderService {
     }
 
     private int calculateEstimatedReadyMin(Shop shop) {
-        List<OrderStatus> waitingStatuses = List.of(OrderStatus.PENDING, OrderStatus.COOKING);
+        List<OrderStatus> waitingStatuses = List.of(OrderStatus.ACCEPTED);
         long waitingOrders = orderItemRepository.countByMenuItem_ShopAndStatusIn(shop, waitingStatuses);
         return (int) (waitingOrders * 5);
     }

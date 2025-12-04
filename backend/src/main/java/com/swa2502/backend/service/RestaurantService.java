@@ -39,7 +39,7 @@ public class RestaurantService {
 
     private RestaurantOccupancyDto calculateOccupancy(Restaurant restaurant) {
         List<Shop> shops = restaurant.getShops();
-        List<OrderStatus> relevantStatuses = List.of(OrderStatus.COOKING, OrderStatus.READY, OrderStatus.PICKED_UP);
+        List<OrderStatus> relevantStatuses = List.of(OrderStatus.ACCEPTED, OrderStatus.READY, OrderStatus.PICKED_UP);
         List<OrderItem> orderItems = orderItemRepository.findByMenuItem_ShopInAndStatusIn(shops, relevantStatuses);
 
         Set<Order> uniqueOrders = orderItems.stream().map(OrderItem::getOrder).collect(Collectors.toSet());
@@ -49,7 +49,7 @@ public class RestaurantService {
 
         for (Order order : uniqueOrders) {
             boolean isCookingOrReady = order.getOrderItems().stream()
-                .anyMatch(item -> item.getStatus() == OrderStatus.COOKING || item.getStatus() == OrderStatus.READY);
+                .anyMatch(item -> item.getStatus() == OrderStatus.ACCEPTED || item.getStatus() == OrderStatus.READY);
 
             boolean isPickedUp = order.getOrderItems().stream()
                 .anyMatch(item -> item.getStatus() == OrderStatus.PICKED_UP);
@@ -110,7 +110,7 @@ public class RestaurantService {
     }
 
     private ShopWithQueueDto convertShopToShopWithQueueDto(Shop shop) {
-        List<OrderStatus> waitingStatuses = List.of(OrderStatus.PENDING, OrderStatus.COOKING);
+        List<OrderStatus> waitingStatuses = List.of(OrderStatus.ACCEPTED);
         long waitingOrdersCount = orderItemRepository.countByMenuItem_ShopAndStatusIn(shop, waitingStatuses);
 
         int etaMinutes = (int) (waitingOrdersCount * 5);
@@ -147,7 +147,7 @@ public class RestaurantService {
 
     // --- Helper method for ETA calculation ---
     private int calculateShopEta(Shop shop) {
-        List<OrderStatus> waitingStatuses = List.of(OrderStatus.PENDING, OrderStatus.COOKING);
+        List<OrderStatus> waitingStatuses = List.of(OrderStatus.ACCEPTED);
         long waitingOrders = orderItemRepository.countByMenuItem_ShopAndStatusIn(shop, waitingStatuses);
         return (int) (waitingOrders * 5);
     }
